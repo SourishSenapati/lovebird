@@ -193,7 +193,6 @@ const App = () => {
         ref={audioRef}
         loop 
         src="/chopin.mp3" 
-        autoPlay
         playsInline
       />
 
