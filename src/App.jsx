@@ -96,9 +96,6 @@ const App = () => {
   }, []);
 
   const handlePointerInteraction = useCallback((e) => {
-    if (e && e.type === 'touchstart') {
-      e.preventDefault();
-    }
     const clientX = e.touches && e.touches.length > 0 ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches && e.touches.length > 0 ? e.touches[0].clientY : e.clientY;
     moveButton(clientX, clientY);
