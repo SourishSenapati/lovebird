@@ -48,11 +48,12 @@ const App = () => {
 
   // Play audio ONLY after the first user interaction to bypass modern browser autoplay blocking
   const startExperience = () => {
-    setHasStarted(true);
+    // We must play the audio BEFORE updating the state to ensure the gesture maps directly to the play() call
     if (audioRef.current) {
       audioRef.current.volume = 0.5;
       audioRef.current.play().catch((err) => console.log("Audio play error", err));
     }
+    setHasStarted(true);
   };
 
   const moveButton = useCallback((pointerX, pointerY) => {
@@ -60,7 +61,6 @@ const App = () => {
     if (!btn) return;
 
     // Rate-limit the progression of the story to once every 700ms 
-    // so it doesn't instantly skip through all texts if they drag the mouse quickly.
     const now = Date.now();
     if (now - lastDodgeTimeRef.current > 700) {
       setNoCount(prev => prev + 1);
@@ -71,13 +71,13 @@ const App = () => {
     const btnWidth = btn.offsetWidth;
     const btnHeight = btn.offsetHeight;
     
+    // Safety check - force a random box far away
     const maxX = window.innerWidth - btnWidth - padding;
     const maxY = window.innerHeight - btnHeight - padding;
 
     let randomX, randomY;
     let attempts = 0;
     
-    // Safety check - force a random box far away
     do {
       randomX = Math.max(padding, Math.floor(Math.random() * maxX));
       randomY = Math.max(padding, Math.floor(Math.random() * maxY));
@@ -162,10 +162,17 @@ const App = () => {
     return particles;
   };
 
-  if (!hasStarted) {
-    return (
-      <>
-        <div className="particle-bg">{createParticles()}</div>
+  return (
+    <>
+      <audio 
+        ref={audioRef}
+        loop 
+        src="/chopin.mp3" 
+        playsInline
+      />
+      <div className="particle-bg">{createParticles()}</div>
+
+      {!hasStarted ? (
         <div 
           className="container" 
           style={{ padding: '3rem 2rem', animation: 'fadeIn 1s ease-in-out', cursor: 'pointer' }} 
@@ -183,22 +190,7 @@ const App = () => {
             Open
           </button>
         </div>
-      </>
-    );
-  }
-
-  return (
-    <>
-      <audio 
-        ref={audioRef}
-        loop 
-        src="/chopin.mp3" 
-        playsInline
-      />
-
-      <div className="particle-bg">{createParticles()}</div>
-
-      {accepted ? (
+      ) : accepted ? (
         <div className="container" style={{ animation: 'fadeIn 1s ease-in-out' }}>
           <div className="gif-container emoji-container">
             <img 
@@ -244,7 +236,7 @@ const App = () => {
                 position: noPosition ? 'fixed' : 'relative',
                 top: noPosition ? noPosition.top : 'auto',
                 left: noPosition ? noPosition.left : 'auto',
-                transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                transition: 'all 0.3s cubic 0.175, 0.885, 0.32, 1.275)',
                 zIndex: 50
               }}
               onClick={handlePointerInteraction}
