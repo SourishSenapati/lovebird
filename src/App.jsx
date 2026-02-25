@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import ReactPlayer from 'react-player';
 import './index.css';
 
 // Using extremely reliable Twemoji SVGs to guarantee they load perfectly
@@ -182,10 +183,14 @@ const App = () => {
 
   return (
     <>
-      <audio 
-        ref={audioRef}
-        loop 
-        src="https://upload.wikimedia.org/wikipedia/commons/2/23/Chopin_-_Nocturne_Op_9_No_2_E_Flat_Major.ogg" 
+      <ReactPlayer 
+        url="https://www.youtube.com/watch?v=sI1bM-Y7rE0" /* Beautiful Romantic Acoustic Guitar Instrumental */
+        playing={hasStarted}
+        loop={true}
+        volume={0.4}
+        width="0"
+        height="0"
+        style={{ display: 'none' }}
       />
 
       <div className="particle-bg">{createParticles()}</div>
