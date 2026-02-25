@@ -199,8 +199,9 @@ const App = () => {
         <div className="container" style={{ animation: 'fadeIn 1s ease-in-out' }}>
           <div className="gif-container emoji-container">
             <img 
-              src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f60d.svg" 
-              alt="Heart eyes emoji" 
+              src="/gifs/yes.gif" 
+              alt="Happy Bear Hugging" 
+              className="final-gif"
             />
           </div>
           <h1>YAYYY! 🎉</h1>
