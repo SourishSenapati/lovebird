@@ -236,7 +236,7 @@ const App = () => {
                 position: noPosition ? 'fixed' : 'relative',
                 top: noPosition ? noPosition.top : 'auto',
                 left: noPosition ? noPosition.left : 'auto',
-                transition: 'all 0.3s cubic 0.175, 0.885, 0.32, 1.275)',
+                transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
                 zIndex: 50
               }}
               onClick={handlePointerInteraction}
