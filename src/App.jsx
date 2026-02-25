@@ -1,5 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
-import ReactPlayer from 'react-player';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import './index.css';
 
 // Using extremely reliable Twemoji SVGs to guarantee they load perfectly
@@ -39,6 +38,7 @@ const App = () => {
   
   const noBtnRef = useRef(null);
   const audioRef = useRef(null);
+  const lastDodgeTimeRef = useRef(0);
 
   const currentStoryIndex = Math.min(noCount, storyContent.length - 1);
   const currentContent = storyContent[currentStoryIndex];
@@ -55,9 +55,17 @@ const App = () => {
     }
   };
 
-  const moveButton = (pointerX, pointerY) => {
+  const moveButton = useCallback((pointerX, pointerY) => {
     const btn = noBtnRef.current;
     if (!btn) return;
+
+    // Rate-limit the progression of the story to once every 700ms 
+    // so it doesn't instantly skip through all texts if they drag the mouse quickly.
+    const now = Date.now();
+    if (now - lastDodgeTimeRef.current > 700) {
+      setNoCount(prev => prev + 1);
+      lastDodgeTimeRef.current = now;
+    }
 
     const padding = 20; 
     const btnWidth = btn.offsetWidth;
@@ -69,6 +77,7 @@ const App = () => {
     let randomX, randomY;
     let attempts = 0;
     
+    // Safety check - force a random box far away
     do {
       randomX = Math.max(padding, Math.floor(Math.random() * maxX));
       randomY = Math.max(padding, Math.floor(Math.random() * maxY));
@@ -76,7 +85,7 @@ const App = () => {
     } while (
       pointerX !== undefined && 
       pointerY !== undefined && 
-      Math.hypot(randomX + btnWidth/2 - pointerX, randomY + btnHeight/2 - pointerY) < 150 && 
+      Math.hypot(randomX + (btnWidth / 2) - pointerX, randomY + (btnHeight / 2) - pointerY) < 150 && 
       attempts < 15 
     );
 
@@ -84,21 +93,20 @@ const App = () => {
       top: `${randomY}px`,
       left: `${randomX}px`
     });
-  };
+  }, []);
 
-  const handleNoInteraction = (e) => {
+  const handlePointerInteraction = useCallback((e) => {
     if (e && e.type === 'touchstart') {
       e.preventDefault();
     }
-    
-    setNoCount(prev => prev + 1);
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    const clientX = e.touches && e.touches.length > 0 ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches && e.touches.length > 0 ? e.touches[0].clientY : e.clientY;
     moveButton(clientX, clientY);
-  };
+  }, [moveButton]);
 
   useEffect(() => {
     const handlePointerMove = (e) => {
+      // Don't dodge if accepted or button doesn't exist
       if (accepted || !noBtnRef.current) return;
       
       let clientX, clientY;
@@ -116,6 +124,7 @@ const App = () => {
 
       const distance = Math.hypot(clientX - btnCenterX, clientY - btnCenterY);
 
+      // Trigger dodge purely on proximity (120px threshold)
       if (distance < 120) {
         moveButton(clientX, clientY);
       }
@@ -128,7 +137,7 @@ const App = () => {
       window.removeEventListener('mousemove', handlePointerMove);
       window.removeEventListener('touchmove', handlePointerMove);
     };
-  }, [accepted, noCount]);
+  }, [accepted, moveButton]);
 
   const createParticles = () => {
     const particles = [];
@@ -183,14 +192,12 @@ const App = () => {
 
   return (
     <>
-      <ReactPlayer 
-        url="https://www.youtube.com/watch?v=sI1bM-Y7rE0" /* Beautiful Romantic Acoustic Guitar Instrumental */
-        playing={hasStarted}
-        loop={true}
-        volume={0.4}
-        width="0"
-        height="0"
-        style={{ display: 'none' }}
+      <audio 
+        ref={audioRef}
+        loop 
+        src="/chopin.mp3" 
+        autoPlay
+        playsInline
       />
 
       <div className="particle-bg">{createParticles()}</div>
@@ -234,7 +241,6 @@ const App = () => {
             >
               Yes!
             </button>
-            
             <button 
               ref={noBtnRef}
               className="btn-no" 
@@ -245,8 +251,9 @@ const App = () => {
                 transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
                 zIndex: 50
               }}
-              onClick={handleNoInteraction}
-              onTouchStart={handleNoInteraction}
+              onClick={handlePointerInteraction}
+              onTouchStart={handlePointerInteraction}
+              onMouseEnter={handlePointerInteraction}
             >
               {noCount === 0 ? "No" : "Still No?"}
             </button>
