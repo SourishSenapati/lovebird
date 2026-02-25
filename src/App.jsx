@@ -55,8 +55,6 @@ const App = () => {
   };
 
   const moveButton = (pointerX, pointerY) => {
-    if (noCount < 2) return; 
-    
     const btn = noBtnRef.current;
     if (!btn) return;
 
@@ -92,21 +90,18 @@ const App = () => {
       e.preventDefault();
     }
     
-    if (noCount < 2) {
-      setNoCount(prev => prev + 1);
-    } else {
-      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-      moveButton(clientX, clientY);
-    }
+    setNoCount(prev => prev + 1);
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    moveButton(clientX, clientY);
   };
 
   useEffect(() => {
     const handlePointerMove = (e) => {
-      if (accepted || noCount < 2 || !noBtnRef.current) return;
+      if (accepted || !noBtnRef.current) return;
       
       let clientX, clientY;
-      if (e.touches && e.touches.length > 0) {
+      if (e.touches && typeof e.touches.length !== 'undefined' && e.touches.length > 0) {
         clientX = e.touches[0].clientX;
         clientY = e.touches[0].clientY;
       } else {
@@ -238,9 +233,9 @@ const App = () => {
               ref={noBtnRef}
               className="btn-no" 
               style={{
-                position: noPosition && noCount >= 2 ? 'fixed' : 'relative',
-                top: noPosition && noCount >= 2 ? noPosition.top : 'auto',
-                left: noPosition && noCount >= 2 ? noPosition.left : 'auto',
+                position: noPosition ? 'fixed' : 'relative',
+                top: noPosition ? noPosition.top : 'auto',
+                left: noPosition ? noPosition.left : 'auto',
                 transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
                 zIndex: 50
               }}
